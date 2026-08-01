@@ -61,13 +61,11 @@ struct Runner {
                 guard let text = try? String(contentsOfFile: file.path, encoding: .utf8) else {
                     throw PluginError.notFound(file.path)
                 }
-                // Quick View moves with the cursor, so it gets the cheaper
-                // rendering; a full Lister window gets the converted page.
-                let quickView = ViewerOptions(rawValue: file.options).contains(.quickView)
-                try reply(request.id, quickView
-                    ? PluginPayload.ViewContent(kind: "text", text: text)
-                    : PluginPayload.ViewContent(
-                        kind: "html", text: MarkdownRenderer.html(from: text)))
+                // Quick View renders the same converted page as Lister
+                // (owner decision 2026-08-01) — conversion is cheap, and a
+                // half-window preview deserves real formatting.
+                try reply(request.id, PluginPayload.ViewContent(
+                    kind: "html", text: MarkdownRenderer.html(from: text)))
 
             default:
                 try fail(request.id, .notSupported(request.method))
